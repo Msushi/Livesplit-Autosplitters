@@ -1,30 +1,43 @@
 state("Impulsion-Win64-Shipping")
 {
-	float gameTimer : 0x2DBC7D0, 0x30, 0x150, 0x18, 0x468, 0x250;
+	float levelTimer : 0x2DE17D0, 0x30, 0x370, 0x148, 0x780, 0x60C;
+	float bufferGameTime : 0x2DD07F8, 0xC0, 0x20, 0x20, 0x140, 0x150;
 }
 init
 {
-	vars.fixedGameTimer = 0;
-	vars.timerBeforeLoad = 0;
+	vars.gameTime = 0;
+	vars.fixedBufferTime = 0;
+	vars.fixedLevelTime = 0;
 }
 update
 {
-	if (current.gameTimer != 0)
-		vars.fixedGameTimer = current.gameTimer;
-	if (current.gameTimer == old.gameTimer && old.gameTimer != 0 && current.gameTimer != 0)
-		vars.timerBeforeLoad = old.gameTimer;
+	if (current.levelTimer != 0)
+		vars.fixedLevelTime = current.levelTimer;
+	if (current.bufferGameTime != 0)
+		vars.fixedBufferTime = current.bufferGameTime;
+	
+	
 }
 start
 {
-	return (current.gameTimer > .1);
+	return (current.levelTimer > 0);
 }
 split
 {
-	return ((vars.fixedGameTimer == vars.timerBeforeLoad) && (old.gameTimer < current.gameTimer));
-}
-reset
-{
-	return (vars.fixedGameTimer < .1);
+	if (current.levelTimer == current.bufferGameTime)
+	{
+		if (current.bufferGameTime > old.bufferGameTime)
+		{
+			vars.firstSplit = false;
+			return true;
+		}
+			
+	}
+	else
+	{
+		if (current.bufferGameTime > old.bufferGameTime && old.bufferGameTime != 0)
+			return true;
+	}
 }
 isLoading 
 {
@@ -32,7 +45,5 @@ isLoading
 }
 gameTime
 {
-	return TimeSpan.FromSeconds(vars.fixedGameTimer);
+	return TimeSpan.FromSeconds(current.bufferGameTime);
 }
-
-
